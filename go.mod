@@ -1,3 +1,3 @@
-module github.com/trenchesdeveloper/go-social
+module github.com/trenchesdeveloper/tweeter
 
 go 1.21.5
