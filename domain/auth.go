@@ -9,6 +9,8 @@ import (
 	twitter "github.com/trenchesdeveloper/tweeter"
 )
 
+var passwordCost = bcrypt.DefaultCost
+
 type AuthService struct {
 	UserRepo twitter.UserRepo
 }
@@ -39,7 +41,7 @@ func (s *AuthService) Register(ctx context.Context, input twitter.RegisterInput)
 		Email:    input.Email,
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), passwordCost)
 	if err != nil {
 		return twitter.AuthResponse{}, fmt.Errorf("error hashing password %v", err)
 	}

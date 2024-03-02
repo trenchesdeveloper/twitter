@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	twitter "github.com/trenchesdeveloper/tweeter"
+	"github.com/trenchesdeveloper/tweeter/faker"
 	"github.com/trenchesdeveloper/tweeter/mocks"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthService_Register(t *testing.T) {
@@ -56,10 +56,7 @@ func TestAuthService_Login(t *testing.T) {
 		Password: "password",
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
-
-	require.NoError(t, err)
-
+	hashedPassword := faker.Password
 	t.Run("can login", func(t *testing.T) {
 		ctx := context.Background()
 		userRepo := &mocks.UserRepo{}
@@ -119,7 +116,7 @@ func TestAuthService_Login(t *testing.T) {
 		userRepo := &mocks.UserRepo{}
 
 		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(twitter.User{},
-		errors.New("something went wrong"))
+			errors.New("something went wrong"))
 
 		service := NewAuthService(userRepo)
 
