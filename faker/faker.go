@@ -48,5 +48,5 @@ func Email() string {
 }
 
 func ID() string {
-	return fmt.Sprintf("%s-%s-%s-%s", RandStringRunes(4), RandStringRunes(4), RandStringRunes(4), RandStringRunes(4), RandStringRunes(12))
+	return fmt.Sprintf("%s-%s-%s-%s", RandStringRunes(4), RandStringRunes(4), RandStringRunes(4), RandStringRunes(4))
 }
