@@ -6,6 +6,7 @@ package domain
 import (
 	"context"
 	twitter "github.com/trenchesdeveloper/tweeter"
+	"github.com/trenchesdeveloper/tweeter/faker"
 	"github.com/trenchesdeveloper/tweeter/test_helper"
 	"testing"
 
@@ -15,8 +16,8 @@ import (
 func TestIntegrationAuthService_Register(t *testing.T) {
 	validInput := twitter.RegisterInput{
 
-		Username:        "bob",
-		Email:           "bob@gmail.com",
+		Username:        faker.Username(),
+		Email:           faker.Email(),
 		Password:        "password",
 		ConfirmPassword: "password",
 	}
