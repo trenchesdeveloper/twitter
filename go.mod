@@ -1,6 +1,6 @@
 module github.com/trenchesdeveloper/tweeter
 
-go 1.21.5
+go 1.22.0
 
 require (
 	github.com/georgysavva/scany/v2 v2.1.0

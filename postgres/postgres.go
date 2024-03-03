@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"path"
@@ -15,7 +16,7 @@ import (
 )
 
 type DB struct {
-	Pool *pgxpool.Pool
+	Pool   *pgxpool.Pool
 	config config.Config
 }
 
@@ -48,18 +49,45 @@ func (db *DB) Ping(ctx context.Context) {
 func (db *DB) Migrate() error {
 	_, b, _, _ := runtime.Caller(0)
 	migrationPath := fmt.Sprintf("file:///%s/migrations", path.Dir(b))
-	log.Println("db url``	", db.config.Database.Url)
 	m, err := migrate.New(migrationPath, db.config.Database.Url)
 
 	if err != nil {
 		return fmt.Errorf("can't create migration: %v", err)
 	}
 
-	if err := m.Up(); err != nil  && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("can't migrate: %v", err)
 	}
 
 	log.Println("postgres migrated")
+
+	return nil
+}
+
+func (db *DB) Drop() error {
+	_, b, _, _ := runtime.Caller(0)
+	migrationPath := fmt.Sprintf("file:///%s/migrations", path.Dir(b))
+	m, err := migrate.New(migrationPath, db.config.Database.Url)
+
+	if err != nil {
+		return fmt.Errorf("can't drop migration: %v", err)
+	}
+
+	if err := m.Drop(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("can't drop: %v", err)
+	}
+
+	log.Println("postgres migrated")
+
+	return nil
+}
+
+func (db *DB) Truncate(ctx context.Context) error {
+	_, err := db.Pool.Exec(ctx, "DELETE FROM users;")
+
+	if err != nil {
+		return fmt.Errorf("can't truncate table: %v", err)
+	}
 
 	return nil
 }
