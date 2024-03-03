@@ -10,7 +10,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/trenchesdeveloper/tweeter/config"
 )
 
@@ -20,12 +20,7 @@ type DB struct {
 }
 
 func New(ctx context.Context, config *config.Config) *DB {
-	dbConf, err := pgxpool.ParseConfig(config.Database.Url)
-	if err != nil {
-		log.Fatalf("can't parse postgres config: %v", err)
-	}
-
-	pool, err := pgxpool.ConnectConfig(ctx, dbConf)
+	pool, err := pgxpool.New(ctx, config.Database.Url)
 
 	if err != nil {
 		log.Fatalf("can't connect to postgres: %v", err)
