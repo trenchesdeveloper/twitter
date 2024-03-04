@@ -17,3 +17,7 @@ migrate-create:
 
 run:
 	go run cmd/graphqlserver/main.go
+
+
+generate:
+	go run github.com/99designs/gqlgen generate --config graph/gqlgen.yml
