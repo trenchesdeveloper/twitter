@@ -6,6 +6,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/trenchesdeveloper/tweeter/domain"
 	"github.com/trenchesdeveloper/tweeter/graph"
 	"log"
 	"net/http"
@@ -43,13 +44,23 @@ func main() {
 	router.Use(middleware.RedirectSlashes)
 	router.Use(middleware.Timeout(time.Second * 60))
 
+	// REPOS
+	userRepo := postgres.NewUserRepo(db)
+
+	// SERVICES
+	authService := domain.AuthService{
+		userRepo,
+	}
+
 	//set graphql playground
 	router.Get("/", playground.Handler("Twitter Clone", "/query"))
 
 	router.Handle("/query", handler.NewDefaultServer(
 		graph.NewExecutableSchema(
 			graph.Config{
-				Resolvers: &graph.Resolver{},
+				Resolvers: &graph.Resolver{
+					AuthService: &authService,
+				},
 			},
 		),
 	))

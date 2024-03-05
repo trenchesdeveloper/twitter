@@ -63,7 +63,7 @@ func TestAuthService_Login(t *testing.T) {
 
 		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(twitter.User{
 			Email:    validInput.Email,
-			Password: string(hashedPassword),
+			Password: hashedPassword,
 		}, nil)
 
 		service := NewAuthService(userRepo)
@@ -81,7 +81,7 @@ func TestAuthService_Login(t *testing.T) {
 
 		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(twitter.User{
 			Email:    validInput.Email,
-			Password: string(hashedPassword),
+			Password: hashedPassword,
 		}, nil)
 
 		service := NewAuthService(userRepo)
