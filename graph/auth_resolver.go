@@ -44,7 +44,23 @@ func (r *mutationResolver) Register(ctx context.Context, registerInput *models.R
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, loginInput *models.LoginInput) (*models.AuthResponse, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
+	res, err := r.AuthService.Login(ctx, twitter.LoginInput{
+		Email:    loginInput.Email,
+		Password: loginInput.Password,
+	})
+
+	if err != nil {
+		switch {
+		case errors.Is(err, twitter.ErrValidation) || errors.Is(err, twitter.ErrBadCredentials):
+			return nil, buildBadRequestError(ctx, err)
+
+		default:
+			return nil, err
+		}
+
+	}
+
+	return mapAuthResponseToGQL(res), nil
 }
 
 // Logout is the resolver for the logout field.
