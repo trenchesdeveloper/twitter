@@ -11,8 +11,14 @@ type database struct {
 	Url string
 }
 
+type jwt struct {
+	Secret string
+	Issuer string
+}
+
 type Config struct {
 	Database database
+	Jwt      jwt
 }
 
 func LoadEnv(fileName string) {
@@ -32,7 +38,11 @@ func New() *Config {
 	godotenv.Load()
 	return &Config{
 		Database: database{
-			Url: os.Getenv("DATABASE_URL") ,
+			Url: os.Getenv("DATABASE_URL"),
+		},
+		Jwt: jwt{
+			Secret: os.Getenv("JWT_SECRET"),
+			Issuer: os.Getenv("DOMAIN"),
 		},
 	}
 }

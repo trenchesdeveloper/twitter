@@ -19,11 +19,14 @@ type AuthService interface {
 	Login(ctx context.Context, input LoginInput) (AuthResponse, error)
 }
 
-
+type AuthToken struct {
+	ID  string
+	Sub string
+}
 
 type AuthResponse struct {
 	AccessToken string
-	User		User
+	User        User
 }
 
 type RegisterInput struct {
@@ -63,7 +66,6 @@ type LoginInput struct {
 	Email    string
 	Password string
 }
-
 
 func (in *LoginInput) Sanitize() {
 	in.Email = strings.TrimSpace(in.Email)
