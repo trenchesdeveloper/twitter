@@ -16,7 +16,7 @@ migrate-create:
 	migrate create -ext sql -dir postgres/migrations $$name
 
 run:
-	go run cmd/graphqlserver/main.go
+	go run cmd/graphqlserver/*.go
 
 
 generate:

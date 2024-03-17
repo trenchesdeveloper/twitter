@@ -9,4 +9,5 @@ var (
 	ErrInvalidAccessToken = errors.New("invalid access token")
 	ErrNoUserIdInContext  = errors.New("no user id in context")
 	ErrGenAccessToken     = errors.New("error generating access token")
+	ErrUnAuthenicated     = errors.New("unauthenticated")
 )

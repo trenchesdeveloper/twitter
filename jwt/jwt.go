@@ -3,7 +3,6 @@ package jwt
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -66,8 +65,6 @@ func (s *TokenService) CreateAccessToken(ctx context.Context, user twitter.User)
 	}
 
 	token, err := jwt.Sign(t, jwt.WithKey(signatureType, []byte(s.Conf.Jwt.Secret)))
-
-	log.Println("token", string(token))
 
 	if err != nil {
 		return "", fmt.Errorf("error signing token: %v", err)
