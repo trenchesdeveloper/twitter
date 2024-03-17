@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/trenchesdeveloper/tweeter/domain"
 	"github.com/trenchesdeveloper/tweeter/graph"
+	"github.com/trenchesdeveloper/tweeter/jwt"
 	"log"
 	"net/http"
 	"time"
@@ -49,8 +50,12 @@ func main() {
 
 	// SERVICES
 	authService := domain.AuthService{
-		userRepo,
+		UserRepo: userRepo,
 	}
+	authTokenService := jwt.NewTokenService(conf)
+
+	// MIDDLEWARE
+	router.Use(authMiddleware(authTokenService))
 
 	//set graphql playground
 	router.Get("/", playground.Handler("Twitter Clone", "/query"))
