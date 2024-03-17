@@ -3,16 +3,20 @@ package jwt
 import (
 	"context"
 	"fmt"
-	twitter "github.com/trenchesdeveloper/tweeter"
-	"github.com/trenchesdeveloper/tweeter/config"
+	"log"
 	"net/http"
 	"time"
+
+	twitter "github.com/trenchesdeveloper/tweeter"
+	"github.com/trenchesdeveloper/tweeter/config"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
-var signatureType = jwa.RS256
+var signatureType = jwa.HS256
+
+var now = time.Now
 
 type TokenService struct {
 	Conf *config.Config
@@ -52,14 +56,18 @@ func (s *TokenService) ParseToken(ctx context.Context, payload string) (twitter.
 	return buildToken(token), err
 }
 
-func (s *TokenService) CreateAccessToken(ctx context.Context, user twitter.User, tokenID string) (string, error) {
-	t := jwt.New()
+func (s *TokenService) CreateAccessToken(ctx context.Context, user twitter.User) (string, error) {
+	b := setDefaultBuilder(user, twitter.AccessTokenLifetime, s.Conf)
 
-	if err := setDefaultToken(t, user, twitter.AccessTokenLifetime, s.Conf); err != nil {
-		return "", err
+	t, err := b.Build()
+
+	if err != nil {
+		return "", fmt.Errorf("error building token: %v", err)
 	}
 
-	token, err := jwt.Sign(t, jwt.WithKey(signatureType, s.Conf.Jwt.Secret))
+	token, err := jwt.Sign(t, jwt.WithKey(signatureType, []byte(s.Conf.Jwt.Secret)))
+
+	log.Println("token", string(token))
 
 	if err != nil {
 		return "", fmt.Errorf("error signing token: %v", err)
@@ -69,15 +77,10 @@ func (s *TokenService) CreateAccessToken(ctx context.Context, user twitter.User,
 }
 
 func (s *TokenService) CreateRefreshToken(ctx context.Context, user twitter.User) (string, error) {
-	t := jwt.New()
+	b := setDefaultBuilder(user, twitter.RefreshTokenLifetime, s.Conf)
 
-	if err := setDefaultToken(t, user, twitter.RefreshTokenLifetime, s.Conf); err != nil {
-		return "", fmt.Errorf("error setting default token: %v", err)
-	}
-
-	if err := t.Set(jwt.JwtIDKey, user.ID); err != nil {
-		return "", fmt.Errorf("error setting jwt id: %v", err)
-	}
+	// add jwt id to builder
+	t, err := b.JwtID(user.ID).Build()
 
 	token, err := jwt.Sign(t, jwt.WithKey(signatureType, s.Conf.Jwt.Secret))
 
@@ -89,22 +92,8 @@ func (s *TokenService) CreateRefreshToken(ctx context.Context, user twitter.User
 
 }
 
-func setDefaultToken(t jwt.Token, user twitter.User, lifetime time.Duration, conf *config.Config) error {
-	if err := t.Set(jwt.SubjectKey, user.ID); err != nil {
-		return fmt.Errorf("error setting subject: %v", err)
-	}
+func setDefaultBuilder(user twitter.User, lifetime time.Duration, conf *config.Config) *jwt.Builder {
+	builder := jwt.NewBuilder().Issuer(conf.Jwt.Issuer).Subject(user.ID).IssuedAt(time.Now()).Expiration(time.Now().Add(lifetime))
 
-	if err := t.Set(jwt.IssuerKey, conf.Jwt.Issuer); err != nil {
-		return fmt.Errorf("error setting issuer: %v", err)
-	}
-
-	if err := t.Set(jwt.IssuedAtKey, time.Now().Unix()); err != nil {
-		return fmt.Errorf("error setting issued at: %v", err)
-	}
-
-	if err := t.Set(jwt.ExpirationKey, time.Now().Add(lifetime).Unix()); err != nil {
-		return fmt.Errorf("error setting expiration: %v", err)
-	}
-
-	return nil
+	return builder
 }

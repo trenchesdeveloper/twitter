@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"regexp"
 
@@ -30,12 +31,15 @@ func LoadEnv(fileName string) {
 	err := godotenv.Load(string(rootPath) + "/" + fileName)
 
 	if err != nil {
-		godotenv.Load()
+		log.Println("error loading .env file222")
+		err := godotenv.Load()
+		if err != nil {
+			return
+		}
 	}
 }
 
 func New() *Config {
-	godotenv.Load()
 	return &Config{
 		Database: database{
 			Url: os.Getenv("DATABASE_URL"),
