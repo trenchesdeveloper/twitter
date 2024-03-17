@@ -8,15 +8,17 @@ import (
 
 	twitter "github.com/trenchesdeveloper/tweeter"
 	"github.com/trenchesdeveloper/tweeter/config"
+	"github.com/trenchesdeveloper/tweeter/jwt"
 	"github.com/trenchesdeveloper/tweeter/postgres"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	conf        *config.Config
-	db          *postgres.DB
-	authService *AuthService
-	userRepo    twitter.UserRepo
+	conf             *config.Config
+	db               *postgres.DB
+	authService      *AuthService
+	authTokenService twitter.AuthTokenService
+	userRepo         twitter.UserRepo
 )
 
 func TestMain(m *testing.M) {
@@ -43,7 +45,9 @@ func TestMain(m *testing.M) {
 
 	userRepo = postgres.NewUserRepo(db)
 
-	authService = NewAuthService(userRepo)
+	authTokenService = jwt.NewTokenService(conf)
+
+	authService = NewAuthService(userRepo, authTokenService)
 
 	os.Exit(m.Run())
 }

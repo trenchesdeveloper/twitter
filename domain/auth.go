@@ -12,11 +12,15 @@ import (
 var passwordCost = bcrypt.DefaultCost
 
 type AuthService struct {
-	UserRepo twitter.UserRepo
+	AuthTokenService twitter.AuthTokenService
+	UserRepo         twitter.UserRepo
 }
 
-func NewAuthService(userRepo twitter.UserRepo) *AuthService {
-	return &AuthService{UserRepo: userRepo}
+func NewAuthService(userRepo twitter.UserRepo, authTokenService twitter.AuthTokenService) *AuthService {
+	return &AuthService{
+		UserRepo:         userRepo,
+		AuthTokenService: authTokenService,
+	}
 }
 
 func (s *AuthService) Register(ctx context.Context, input twitter.RegisterInput) (twitter.AuthResponse, error) {
@@ -48,23 +52,23 @@ func (s *AuthService) Register(ctx context.Context, input twitter.RegisterInput)
 
 	user.Password = string(hashedPassword)
 
-	user, err = s.UserRepo.Create(ctx, user);
+	user, err = s.UserRepo.Create(ctx, user)
 
 	if err != nil {
 		return twitter.AuthResponse{}, fmt.Errorf("error creating user %v", err)
 	}
 
-	// token, err := generateToken(user.ID)
-	// if err != nil {
-	// 	return twitter.AuthResponse{}, fmt.Errorf("%w: error generating token", twitter.ErrInternal)
-	// }
+	accessToken, err := s.AuthTokenService.CreateAccessToken(ctx, user)
+
+	if err != nil {
+		return twitter.AuthResponse{}, twitter.ErrGenAccessToken
+	}
 
 	return twitter.AuthResponse{
-		AccessToken: "token",
+		AccessToken: accessToken,
 		User:        user,
 	}, nil
 }
-
 
 func (s *AuthService) Login(ctx context.Context, input twitter.LoginInput) (twitter.AuthResponse, error) {
 	input.Sanitize()
@@ -87,13 +91,14 @@ func (s *AuthService) Login(ctx context.Context, input twitter.LoginInput) (twit
 		return twitter.AuthResponse{}, twitter.ErrBadCredentials
 	}
 
-	// token, err := generateToken(user.ID)
-	// if err != nil {
-	// 	return twitter.AuthResponse{}, fmt.Errorf("%w: error generating token", twitter.ErrInternal)
-	// }
+	accessToken, err := s.AuthTokenService.CreateAccessToken(ctx, user)
+
+	if err != nil {
+		return twitter.AuthResponse{}, twitter.ErrGenAccessToken
+	}
 
 	return twitter.AuthResponse{
-		AccessToken: "token",
+		AccessToken: accessToken,
 		User:        user,
 	}, nil
 }

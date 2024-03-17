@@ -49,10 +49,8 @@ func main() {
 	userRepo := postgres.NewUserRepo(db)
 
 	// SERVICES
-	authService := domain.AuthService{
-		UserRepo: userRepo,
-	}
 	authTokenService := jwt.NewTokenService(conf)
+	authService := domain.NewAuthService(userRepo, authTokenService)
 
 	// MIDDLEWARE
 	router.Use(authMiddleware(authTokenService))
@@ -64,7 +62,7 @@ func main() {
 		graph.NewExecutableSchema(
 			graph.Config{
 				Resolvers: &graph.Resolver{
-					AuthService: &authService,
+					AuthService: authService,
 				},
 			},
 		),
