@@ -29,7 +29,7 @@ func NewTokenService(conf *config.Config) *TokenService {
 }
 
 func (s *TokenService) ParseTokenFromRequest(ctx context.Context, r *http.Request) (twitter.AuthToken, error) {
-	token, err := jwt.ParseRequest(r, jwt.WithValidate(true), jwt.WithIssuer(s.Conf.Jwt.Issuer), jwt.WithKey(signatureType, s.Conf.Jwt.Secret))
+	token, err := jwt.ParseRequest(r, jwt.WithValidate(true), jwt.WithIssuer(s.Conf.Jwt.Issuer), jwt.WithKey(signatureType, []byte(s.Conf.Jwt.Secret)))
 
 	if err != nil {
 		return twitter.AuthToken{}, twitter.ErrInvalidAccessToken
@@ -47,7 +47,7 @@ func buildToken(token jwt.Token) twitter.AuthToken {
 }
 
 func (s *TokenService) ParseToken(ctx context.Context, payload string) (twitter.AuthToken, error) {
-	token, err := jwt.Parse([]byte(payload), jwt.WithValidate(true), jwt.WithIssuer(s.Conf.Jwt.Issuer), jwt.WithKey(signatureType, s.Conf.Jwt.Secret))
+	token, err := jwt.Parse([]byte(payload), jwt.WithValidate(true), jwt.WithIssuer(s.Conf.Jwt.Issuer), jwt.WithKey(signatureType, []byte(s.Conf.Jwt.Secret)))
 
 	if err != nil {
 		return twitter.AuthToken{}, twitter.ErrInvalidAccessToken
@@ -76,13 +76,17 @@ func (s *TokenService) CreateAccessToken(ctx context.Context, user twitter.User)
 	return string(token), nil
 }
 
-func (s *TokenService) CreateRefreshToken(ctx context.Context, user twitter.User) (string, error) {
+func (s *TokenService) CreateRefreshToken(ctx context.Context, user twitter.User, tokenID string) (string, error) {
 	b := setDefaultBuilder(user, twitter.RefreshTokenLifetime, s.Conf)
 
 	// add jwt id to builder
-	t, err := b.JwtID(user.ID).Build()
+	t, err := b.JwtID(tokenID).Build()
 
-	token, err := jwt.Sign(t, jwt.WithKey(signatureType, s.Conf.Jwt.Secret))
+	if err != nil {
+		return "", fmt.Errorf("error building token: %v", err)
+	}
+
+	token, err := jwt.Sign(t, jwt.WithKey(signatureType, []byte(s.Conf.Jwt.Secret)))
 
 	if err != nil {
 		return "", fmt.Errorf("error signing token: %v", err)
@@ -93,7 +97,7 @@ func (s *TokenService) CreateRefreshToken(ctx context.Context, user twitter.User
 }
 
 func setDefaultBuilder(user twitter.User, lifetime time.Duration, conf *config.Config) *jwt.Builder {
-	builder := jwt.NewBuilder().Issuer(conf.Jwt.Issuer).Subject(user.ID).IssuedAt(time.Now()).Expiration(time.Now().Add(lifetime))
+	builder := jwt.NewBuilder().Issuer(conf.Jwt.Issuer).Subject(user.ID).IssuedAt(now()).Expiration(now().Add(lifetime))
 
 	return builder
 }
