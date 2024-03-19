@@ -50,3 +50,7 @@ func Email() string {
 func ID() string {
 	return fmt.Sprintf("%s-%s-%s-%s", RandStringRunes(4), RandStringRunes(4), RandStringRunes(4), RandStringRunes(4))
 }
+
+func RandString(n int) string {
+	return RandStringRunes(n)
+}
