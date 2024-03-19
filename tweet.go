@@ -20,7 +20,7 @@ type Tweet struct {
 }
 
 type CreateTweetInput struct {
-	Body string `json:"body"`
+	Body string
 }
 
 func (in *CreateTweetInput) Sanitize() {

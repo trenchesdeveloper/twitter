@@ -28,16 +28,32 @@ func (t TweetService) All(ctx context.Context) ([]twitter.Tweet, error) {
 	}, nil
 }
 
-func (t TweetService) Create(ctx context.Context, in twitter.CreateTweetInput) (twitter.Tweet, error) {
+func (t TweetService) Create(ctx context.Context, input twitter.CreateTweetInput) (twitter.Tweet, error) {
 	// check if user is authenticated
-	_, err := twitter.GetUserIDFromContext(ctx)
+	currentUserID, err := twitter.GetUserIDFromContext(ctx)
 
 	if err != nil {
 		return twitter.Tweet{}, twitter.ErrUnAuthenicated
 
 	}
 
-	return twitter.Tweet{}, nil
+	input.Sanitize()
+
+	if err := input.Validate(); err != nil {
+		return twitter.Tweet{}, err
+	}
+
+	tweet, err := t.TweetRepo.Create(ctx, twitter.Tweet{
+		Body:   input.Body,
+		UserID: currentUserID,
+	})
+
+	if err != nil {
+		return twitter.Tweet{}, err
+
+	}
+
+	return tweet, nil
 }
 
 func (t TweetService) GetByID(ctx context.Context, id string) (twitter.Tweet, error) {

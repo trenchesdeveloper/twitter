@@ -9,6 +9,7 @@ import (
 	twitter "github.com/trenchesdeveloper/tweeter"
 	"github.com/trenchesdeveloper/tweeter/faker"
 	"github.com/trenchesdeveloper/tweeter/test_helper"
+	"log"
 	"testing"
 )
 
@@ -34,12 +35,13 @@ func TestIntegrationTweetService_Create(t *testing.T) {
 			Body: faker.RandString(100),
 		}
 
-		tweet, err := tweetService.Create(ctx, input)
+		newTweet, err := tweetService.Create(ctx, input)
 
 		require.NoError(t, err)
-		require.NotEmpty(t, tweet.ID, "tweet id should be set")
-		require.Equal(t, input.Body, tweet.Body, "tweet body should be the same")
-		require.Equal(t, currentUser.ID, tweet.UserID, "tweet user id should be the same")
-		require.NotEmpty(t, tweet.CreatedAt, "tweet created at should be set")
+		log.Println("tweet check", newTweet.ID)
+		require.NotEmpty(t, newTweet.ID, "newTweet id should be set")
+		require.Equal(t, input.Body, newTweet.Body, "newTweet body should be the same")
+		require.Equal(t, currentUser.ID, newTweet.UserID, "newTweet user id should be the same")
+		require.NotEmpty(t, newTweet.CreatedAt, "newTweet created at should be set")
 	})
 }
