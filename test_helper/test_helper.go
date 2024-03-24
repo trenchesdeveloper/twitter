@@ -38,3 +38,16 @@ func LoginUser(ctx context.Context, t *testing.T, user twitter.User) context.Con
 	return twitter.PutUserIDIntoContext(ctx, user.ID)
 
 }
+
+func CreateTweet(ctx context.Context, t *testing.T, tweetRepo twitter.TweetRepo, forUser string) twitter.Tweet {
+	t.Helper()
+
+	tweet, err := tweetRepo.Create(ctx, twitter.Tweet{
+		Body:   faker.RandString(30),
+		UserID: forUser,
+	})
+
+	require.NoError(t, err)
+
+	return tweet
+}

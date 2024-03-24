@@ -16,11 +16,20 @@ func NewTweetRepo(DB *DB) *TweetRepo {
 	return &TweetRepo{DB: DB}
 }
 
-func (t TweetRepo) All(ctx context.Context) ([]twitter.Tweet, error) {
-	panic("implement me")
+func (t *TweetRepo) All(ctx context.Context) ([]twitter.Tweet, error) {
+
+	query := `SELECT * FROM tweets ORDER BY created_at DESC;`
+
+	tweets := []twitter.Tweet{}
+
+	if err := pgxscan.Select(ctx, t.DB.Pool, &tweets, query); err != nil {
+		return nil, fmt.Errorf("error getting all tweets: %w", err)
+	}
+
+	return tweets, nil
 }
 
-func (t TweetRepo) Create(ctx context.Context, tweet twitter.Tweet) (twitter.Tweet, error) {
+func (t *TweetRepo) Create(ctx context.Context, tweet twitter.Tweet) (twitter.Tweet, error) {
 	tx, err := t.DB.Pool.Begin(ctx)
 
 	if err != nil {
@@ -43,8 +52,8 @@ func (t TweetRepo) Create(ctx context.Context, tweet twitter.Tweet) (twitter.Twe
 	return tweet, nil
 }
 
-func (t TweetRepo) GetByID(ctx context.Context, id string) (twitter.Tweet, error) {
-	panic("implement me")
+func (t *TweetRepo) GetByID(ctx context.Context, id string) (twitter.Tweet, error) {
+	return getTweetByID(ctx, t.DB.Pool, id)
 }
 
 func createTweet(ctx context.Context, tx pgx.Tx, tweet twitter.Tweet) (twitter.Tweet, error) {
@@ -54,6 +63,22 @@ func createTweet(ctx context.Context, tx pgx.Tx, tweet twitter.Tweet) (twitter.T
 
 	if err := pgxscan.Get(ctx, tx, &t, query, tweet.Body, tweet.UserID); err != nil {
 		return twitter.Tweet{}, fmt.Errorf("error creating tweet: %w", err)
+	}
+
+	return t, nil
+}
+
+func getTweetByID(ctx context.Context, q pgxscan.Querier, id string) (twitter.Tweet, error) {
+	query := `SELECT * FROM tweets WHERE id = $1 LIMIT 1;`
+
+	t := twitter.Tweet{}
+
+	if err := pgxscan.Get(ctx, q, &t, query, id); err != nil {
+		if pgxscan.NotFound(err) {
+			return twitter.Tweet{}, twitter.ErrNotFound
+		}
+
+		return twitter.Tweet{}, fmt.Errorf("error getting tweet by id: %w", err)
 	}
 
 	return t, nil

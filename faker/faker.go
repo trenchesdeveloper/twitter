@@ -2,6 +2,7 @@ package faker
 
 import (
 	"fmt"
+	"github.com/trenchesdeveloper/tweeter/uuid"
 	"math/rand"
 )
 
@@ -53,4 +54,8 @@ func ID() string {
 
 func RandString(n int) string {
 	return RandStringRunes(n)
+}
+
+func UUID() string {
+	return uuid.Generate()
 }
